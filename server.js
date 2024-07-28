@@ -1,103 +1,83 @@
-const inquirer = require('inquirer');
 const express = require('express');
+const inquirer = require('inquirer');
+const dotenv = require('dotenv');
+const apiRoutes = require('./routes/apiRoutes');
+const pool = require('./config/dbConfig');
 
-const { Pool } = require('pg');
+dotenv.config();
 
-const PORT = process.env.PORT || 3001;
 const app = express();
+const PORT = process.env.PORT || 3001;
 
-app.use(express.urlencoded({ extended: true }));
+
+// Express middleware
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-const pool = new Pool(
+app.use('/api', apiRoutes);
 
-    {
-        user: 'postgres',
-        password: '',
-        host: 'localhost',
-        database: 'tracker'
-    },
-
-    console.log(`Connected to the books_db database.`)
-
-)
-
-pool.connect();
-
-// app.get('/api/department', (req, res) => {
-//     pool.query('SELECT * FROM department', function (err, { rows }) {
-//         console.log(rows); // res.json(rows)
-//     });
-
-// })
-
-// pool.query('SELECT * FROM reviews', function (err, { rows }) {
-//     console.log(rows);
-// });
-
-// app.use((req, res) => {
-//     res.status(404).end();
-// });
-
+// Start the server
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
+  // Starting the function 
+promptUser();
 });
-
 
 
 const main = {
     type: 'list',
     name: 'mainMenu',
     message: 'What would you like to do?',
-    choices: ['view all deparments', 'view all roles', 'view all employees', 'add a department',
-        'add a role', 'add an employee', 'update an employee role'],
+    choices: [
+        'view all deparments', 
+        'view all roles', 
+        'view all employees', 
+        'add a department',
+        'add a role', 
+        'add an employee', 
+        'update an employee role'
+    ],
 
-}
+};
 
-
-
+function promptUser() {
 inquirer
     .prompt([main])
-    .then((answers) => {
+
+    .then( async (answers) => {
+
         switch (answers.mainMenu) {
             case 'view all deparments':
-                // how to bring up all deparments from schema? 
-                app.get('/api/department', (req, res) => {
-                    pool.query('SELECT * FROM department', function (err, { rows }) {
-                        console.log(rows); // res.json(rows)
-                    });
-
-                })
-                console.log('1');
+                await viewAllDepartments();
                 break;
 
             case 'view all roles':
-                console.log('2');
+                
 
                 break;
 
             case 'view all employees':
-                console.log('3');
+                
 
                 break;
 
             case 'add a department':
-                console.log('4');
+                
 
                 break;
 
             case 'add a role':
-                console.log('5');
+                
 
                 break;
 
             case 'add an employee':
-                console.log('6');
+                
 
                 break;
 
             case 'update an employee role':
-                console.log('7');
+                
 
                 break;
 
@@ -106,17 +86,21 @@ inquirer
                 break;
         }
 
-        console.log(answers);
-
     })
 
     .catch((error) => {
-        if (error.isTtyError) {
-            // Prompt couldn't be rendered in the current environment
-            console.error(error.isTtyError);
-        } else {
-            // Something else went wrong
-            console.log('Something went wrong')
-        }
+            console.log('Something went wrong. Error:', error);
     });
+
+}
+
+async function viewAllDepartments() {
+    try {
+      const response = await fetch('http://localhost:3001/api/department');
+      const data = await response.json();
+      console.log(data);
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+    }
+  };
 
