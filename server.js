@@ -1,9 +1,8 @@
-// server.js
 const express = require('express');
 const inquirer = require('inquirer');
 const dotenv = require('dotenv');
 const apiRoutes = require('./routes/apiRoutes');
-const pool = require('./config/dbConfig');
+const { Pool } = require('pg');
 
 dotenv.config();
 
@@ -15,6 +14,14 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 app.use('/api', apiRoutes);
+
+const pool = new Pool({
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    host: 'localhost',
+    database: 'tracker',
+    port: process.env.DB_PORT || 5432,
+});
 
 pool.connect((err) => {
     if (err) {
@@ -36,7 +43,7 @@ app.listen(PORT, () => {
     promptUser();
 });
 
-const mainMenuQuestions = [
+const questions = [
     {
         type: 'list',
         name: 'mainMenu',
@@ -53,40 +60,8 @@ const mainMenuQuestions = [
     },
 ];
 
-const addDepartmentQuestions = [
-    {
-        type: 'input',
-        name: 'departmentName',
-        message: 'What department would you like to add?',
-    },
-];
-
-const addEmployeeQuestions = [
-    {
-        type: 'input',
-        name: 'firstName',
-        message: "What is the employee's first name?",
-    },
-    {
-        type: 'input',
-        name: 'lastName',
-        message: "What is the employee's last name?",
-    },
-    {
-        type: 'input',
-        name: 'roleId',
-        message: "What is the employee's role ID?",
-    },
-    {
-        type: 'input',
-        name: 'managerId',
-        message: "What is the employee's manager ID (null if no manager)?",
-        default: null,
-    },
-];
-
 function promptUser() {
-    inquirer.prompt(mainMenuQuestions)
+    inquirer.prompt(questions)
         .then((answers) => {
             switch (answers.mainMenu) {
                 case 'view all departments':
@@ -99,13 +74,16 @@ function promptUser() {
                     viewAllEmployees();
                     break;
                 case 'add a department':
-                    promptAddDepartment();
+                    // Add functionality for adding a department
+                    addDepartment();
                     break;
                 case 'add a role':
                     // Add functionality for adding a role
+                    addRole();
                     break;
                 case 'add an employee':
-                    promptAddEmployee();
+                    // Add functionality for adding an employee
+                    addEmployee();
                     break;
                 case 'update an employee role':
                     // Add functionality for updating an employee role
@@ -114,57 +92,11 @@ function promptUser() {
                     console.log('Option not implemented');
                     break;
             }
+
         })
         .catch((error) => {
             console.log('Something went wrong. Error:', error);
         });
-}
-
-function promptAddDepartment() {
-    inquirer.prompt(addDepartmentQuestions)
-        .then((answers) => {
-            addDepartment(answers.departmentName);
-        })
-        .catch((error) => {
-            console.log('Something went wrong. Error:', error);
-        });
-}
-
-function addDepartment(departmentName) {
-    pool.query('INSERT INTO department (name) VALUES ($1) RETURNING *;', [departmentName], (err, res) => {
-        if (err) {
-            console.error('Error adding department:', err);
-        } else {
-            console.log(`Department ${departmentName} added successfully!`);
-            console.table(res.rows);
-            promptUser();
-        }
-    });
-}
-
-function promptAddEmployee() {
-    inquirer.prompt(addEmployeeQuestions)
-        .then((answers) => {
-            addEmployee(answers);
-        })
-        .catch((error) => {
-            console.log('Something went wrong. Error:', error);
-        });
-}
-
-function addEmployee({ firstName, lastName, roleId, managerId }) {
-    pool.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4) RETURNING *;', 
-        [firstName, lastName, roleId, managerId], 
-        (err, res) => {
-            if (err) {
-                console.error('Error adding employee:', err);
-            } else {
-                console.log(`Employee ${firstName} ${lastName} added successfully!`);
-                console.table(res.rows);
-                promptUser();
-            }
-        }
-    );
 }
 
 function viewAllDepartments() {
@@ -193,22 +125,22 @@ function viewAllRoles() {
 
 function viewAllEmployees() {
     pool.query(
-        `SELECT 
-            e.id, 
-            e.first_name, 
-            e.last_name, 
-            r.title, 
-            d.name AS department, 
-            r.salary, 
-            CONCAT(m.first_name, ' ', m.last_name) AS manager
-        FROM 
-            employee e
-        LEFT JOIN 
-            role r ON e.role_id = r.id
-        LEFT JOIN 
-            department d ON r.department_id = d.id
-        LEFT JOIN 
-            employee m ON e.manager_id = m.id;`,
+`SELECT 
+    e.id, 
+    e.first_name, 
+    e.last_name, 
+    r.title, 
+    d.name AS department, 
+    r.salary, 
+    CONCAT(m.first_name, ' ', m.last_name) AS manager
+FROM 
+    employee e
+LEFT JOIN 
+    role r ON e.role_id = r.id
+LEFT JOIN 
+    department d ON r.department_id = d.id
+LEFT JOIN 
+    employee m ON e.manager_id = m.id;`,
         (err, res) => {
             if (err) {
                 console.error('Error fetching employees:', err);
@@ -217,6 +149,130 @@ function viewAllEmployees() {
                 console.table(res.rows);
                 promptUser();
             }
+        });
+}
+
+function addDepartment() {
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'departmentName',
+            message: 'What is the name of the department?',
         }
-    );
+    ]).then(answer => {
+        pool.query('INSERT INTO department (name) VALUES ($1) RETURNING id', [answer.departmentName], (err, res) => {
+            if (err) {
+                console.error('Error adding department:', err);
+            } else {
+                console.log(`Added department with id: ${res.rows[0].id}`);
+                promptUser();
+            }
+        });
+    }).catch((error) => {
+        console.log('Something went wrong. Error:', error);
+    });
+}
+
+function addRole() {
+    pool.query('SELECT id, name FROM department;', (err, res) => {
+        if (err) {
+            console.error('Error fetching departments:', err);
+        } else {
+            const departments = res.rows.map(department => ({
+                name: department.name,
+                value: department.id
+            }));
+
+            inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'roleTitle',
+                    message: 'What is the name of the role?',
+                },
+                {
+                    type: 'input',
+                    name: 'roleSalary',
+                    message: 'What is the salary of the role?',
+                },
+                {
+                    type: 'list',
+                    name: 'departmentId',
+                    message: 'Which department does this role belong to?',
+                    choices: departments
+                }
+            ]).then(answers => {
+                pool.query('INSERT INTO role (title, salary, department_id) VALUES ($1, $2, $3) RETURNING id', [answers.roleTitle, answers.roleSalary, answers.departmentId], (err, res) => {
+                    if (err) {
+                        console.error('Error adding role:', err);
+                    } else {
+                        console.log(`Added role with id: ${res.rows[0].id}`);
+                        promptUser();
+                    }
+                });
+            }).catch((error) => {
+                console.log('Something went wrong. Error:', error);
+            });
+        }
+    });
+}
+
+function addEmployee() {
+    pool.query('SELECT id, title FROM role;', (err, roleRes) => {
+        if (err) {
+            console.error('Error fetching roles:', err);
+        } else {
+            const roles = roleRes.rows.map(role => ({
+                name: role.title,
+                value: role.id
+            }));
+
+            pool.query('SELECT id, first_name, last_name FROM employee;', (err, empRes) => {
+                if (err) {
+                    console.error('Error fetching employees:', err);
+                } else {
+                    const employees = empRes.rows.map(emp => ({
+                        name: `${emp.first_name} ${emp.last_name}`,
+                        value: emp.id
+                    }));
+                    employees.unshift({ name: 'None', value: null });
+
+                    inquirer.prompt([
+                        {
+                            type: 'input',
+                            name: 'firstName',
+                            message: "What is their first name?",
+                        },
+                        {
+                            type: 'input',
+                            name: 'lastName',
+                            message: "What is their last name?",
+                        },
+                        {
+                            type: 'list',
+                            name: 'roleId',
+                            message: "What is the employee's role?",
+                            choices: roles
+                        },
+                        {
+                            type: 'list',
+                            name: 'managerId',
+                            message: "Who is their manager?",
+                            choices: employees
+                        }
+                    ]).then(answers => {
+                        pool.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4) RETURNING id', [answers.firstName, answers.lastName, answers.roleId, answers.managerId], (err, res) => {
+                            if (err) {
+                                console.error('Error adding employee:', err);
+                            } else {
+                                console.log(`Added employee with id: ${res.rows[0].id}`);
+                                promptUser();
+                            }
+                        });
+                    }).catch((error) => {
+                        console.log('Something went wrong. Error:', error);
+                    });
+                }
+            });
+        }
+    });
 }
