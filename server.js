@@ -66,10 +66,10 @@ function promptUser() {
                     viewAllDepartments();
                     break;
                 case 'view all roles':
-                    // Add functionality for viewing all roles
+                    viewAllRoles();
                     break;
                 case 'view all employees':
-                    // Add functionality for viewing all employees
+                    viewAllEmployees();
                     break;
                 case 'add a department':
                     // Add functionality for adding a department
@@ -96,11 +96,36 @@ function promptUser() {
 }
 
 function viewAllDepartments() {
-    pool.query('SELECT * FROM department', (err, res) => {
+    pool.query('SELECT * FROM department;', (err, res) => {
         if (err) {
             console.error('Error fetching departments:', err);
         } else {
+            console.log('')
             console.table(res.rows);
         }
     });
 }
+
+function viewAllRoles() {
+    pool.query('SELECT * FROM role;', (err, res) => {
+        if (err) {
+            console.error('Error fetching role:', err);
+        } else {
+            console.log('')
+            console.table(res.rows);
+        }
+
+    })
+}
+function viewAllEmployees() {
+    pool.query('SELECT * FROM employee;', (err, res) => {
+        if (err) {
+            console.error('Error fetching employee:', err);
+        } else {
+            console.log('')
+            console.table(res.rows);
+        }
+
+    })
+}
+
