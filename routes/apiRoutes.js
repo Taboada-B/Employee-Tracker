@@ -1,6 +1,8 @@
+
+
 const express = require('express');
 const router = express.Router();
-const pool = require('../config/dbConfig');
+const pool = require('../config/dbConfig'); // Ensure this is exporting `pool` correctly
 
 router.get('/department', async (req, res) => {
   try {

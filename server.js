@@ -43,23 +43,25 @@ app.listen(PORT, () => {
     promptUser();
 });
 
-const main = {
-    type: 'list',
-    name: 'mainMenu',
-    message: 'What would you like to do?',
-    choices: [
-        'view all departments',
-        'view all roles',
-        'view all employees',
-        'add a department',
-        'add a role',
-        'add an employee',
-        'update an employee role'
-    ],
-};
+const questions = [
+    {
+        type: 'list',
+        name: 'mainMenu',
+        message: 'What would you like to do?',
+        choices: [
+            'view all departments',
+            'view all roles',
+            'view all employees',
+            'add a department',
+            'add a role',
+            'add an employee',
+            'update an employee role'
+        ]
+    },
+];
 
 function promptUser() {
-    inquirer.prompt([main])
+    inquirer.prompt(questions)
         .then((answers) => {
             switch (answers.mainMenu) {
                 case 'view all departments':
@@ -73,6 +75,7 @@ function promptUser() {
                     break;
                 case 'add a department':
                     // Add functionality for adding a department
+                    addDepartment(answers.a);
                     break;
                 case 'add a role':
                     // Add functionality for adding a role
@@ -87,8 +90,7 @@ function promptUser() {
                     console.log('Option not implemented');
                     break;
             }
-            // Restart the prompt
-            promptUser();
+
         })
         .catch((error) => {
             console.log('Something went wrong. Error:', error);
@@ -96,36 +98,39 @@ function promptUser() {
 }
 
 function viewAllDepartments() {
-    pool.query('SELECT * FROM department;', (err, res) => {
+    pool.query('SELECT id, name FROM department;', (err, res) => {
         if (err) {
             console.error('Error fetching departments:', err);
         } else {
-            console.log('')
+            console.log('');
             console.table(res.rows);
+            promptUser();
         }
     });
 }
 
 function viewAllRoles() {
-    pool.query('SELECT * FROM role;', (err, res) => {
+    pool.query('SELECT id, title, salary FROM role;', (err, res) => {
         if (err) {
-            console.error('Error fetching role:', err);
+            console.error('Error fetching roles:', err);
         } else {
-            console.log('')
+            console.log('');
             console.table(res.rows);
+            promptUser();
         }
-
-    })
+    });
 }
+
 function viewAllEmployees() {
     pool.query('SELECT * FROM employee;', (err, res) => {
         if (err) {
-            console.error('Error fetching employee:', err);
+            console.error('Error fetching departments:', err);
         } else {
-            console.log('')
+            console.log('');
             console.table(res.rows);
+            promptUser();
         }
+    });
 
-    })
+
 }
-
