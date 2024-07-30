@@ -4,8 +4,7 @@ const pool = require('../config/dbConfig');
 
 router.get('/department', async (req, res) => {
   try {
-    const sql = 'SELECT * FROM department';
-    const { rows } = await pool.query(sql);
+    const { rows } = await pool.query('SELECT * FROM department');
     res.json({
       message: 'success',
       data: rows,
