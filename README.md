@@ -1,19 +1,48 @@
-# Employee-Tracker
+# Employee Tracker
 
-GIVEN a command-line application that accepts user input
-WHEN I start the application
-THEN I am presented with the following options: view all departments, view all roles, view all employees, add a department, add a role, add an employee, and update an employee role
-WHEN I choose to view all departments
-THEN I am presented with a formatted table showing department names and department ids
-WHEN I choose to view all roles
-THEN I am presented with the job title, role id, the department that role belongs to, and the salary for that role
-WHEN I choose to view all employees
-THEN I am presented with a formatted table showing employee data, including employee ids, first names, last names, job titles, departments, salaries, and managers that the employees report to
-WHEN I choose to add a department
-THEN I am prompted to enter the name of the department and that department is added to the database
-WHEN I choose to add a role
-THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
-WHEN I choose to add an employee
-THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
-WHEN I choose to update an employee role
-THEN I am prompted to select an employee to update and their new role and this information is updated in the database 
+## Description 
+Creating a command line application that allows an employee to manage a company's employees, departments, and roles.  It gives a clear display of departments, roles, employees, titles, salaries, and managers.  
+
+## Table of Contents
+- [Installation](#installation)
+- [Usage](#usage)
+- [URL](#url)
+- [Credits](#credits)
+- [License](#license)
+- [How to Contribute](#how-to-contribute)
+- [Questions](#questions)
+
+## Installation
+To install this project, clone from github. (https://github.com/Taboada-B/Employee-Tracker.git). In order to start the application, the user must key in the following comand lines at the root one at a time. psql -U postgres, enter password user's password, \i db/schema.sql; , \i db/seeds.sql; , \q , npm i, node server.js.  After this, the 
+
+## Usage
+After the user installs the project, simply follow the commands to easily view , add, or update data as needed.  
+
+<img src="./img/Screenshot.jpg" alt="screenshot" width="400"/>
+
+## URL
+NA
+
+## Credits
+Bryan Taboada
+- https://github.com/Taboada-B
+- b.taboada123@gmail.com
+
+
+## License
+
+<img src="./img/MIT-logo.jpg" alt="logo" width="50"/>
+
+This project is licensed under the MIT 
+- see the following link for details: [MIT License](https://opensource.org/licenses/MIT)
+
+## How to Contribute
+1. Fork the repository
+2. My github profile is: Taboada-B
+3. Commit your changes (git commit -m 'Add some description')
+4. Push to the branch (git push origin feature/fooBar)
+5. Create a new Pull Request
+
+## Questions
+
+My email is: b.taboada123@gmail.com
